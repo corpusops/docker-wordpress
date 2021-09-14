@@ -254,7 +254,7 @@ SKIPPED_TAGS="$SKIP_TF|$SKIP_MINOR_OS|$SKIP_NODE|$SKIP_DOCKER|$SKIP_MINIO|$SKIP_
 CURRENT_TS=$(date +%s)
 IMAGES_SKIP_NS="((mailhog|postgis|pgrouting(-bare)?|^library|dejavu|(minio/(minio|mc))))"
 
-SKIPPED_TAGS="$SKIPPED_TAGS|wordpress:(cli-[0-9]\.|(beta|cli-)?(3|4|5\.[0-5]|[0-9]+\.[0-9]+\.).*)"
+SKIPPED_TAGS="$SKIPPED_TAGS|beta|wordpress:(cli-[0-9]\.|(beta|cli-)?(3|4|5\.[0-5]|[0-9]+\.[0-9]+\.).*)"
 
 default_images="
 library/wordpress
@@ -467,6 +467,11 @@ gen_image() {
         debug "Using dockerfiles: $dockerfiles from $_cops_IMG"
     fi
     cat $dockerfiles | envsubst '$_cops_BASE;$_cops_VERSION;' > Dockerfile
+    ### docker-wordpress
+    if ! (echo "$ldir"|egrep -iq cli);then
+        sed -i -re "/USER/d" Dockerfile
+    fi
+    ### end: docker-wordpress
     cd - &>/dev/null
 }
 ### end - docker remote api
@@ -581,9 +586,7 @@ do_refresh_images() {
     while read images;do
         for image in $images;do
             if [[ -n $image ]];then
-                if [[ -z "${SKIP_MAKE_TAGS-}" ]];then
-                    make_tags $image
-                fi
+                make_tags $image
                 do_clean_tags $image
             fi
         done
