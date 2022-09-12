@@ -16,7 +16,7 @@ install() {
         "https://api.github.com/repos/jwilder/dockerize/releases/$DOCKERIZE_RELEASE" \
         | grep browser_download_url | cut -d "\"" -f 4\
         | ( if [ -e /etc/alpine-release ];then grep alpine;else grep -v alpine;fi; ) \
-        | egrep -i "($(uname -s).*$arch|sha)" )" \
+        | grep -E -i "($(uname -s).*$arch|sha)" )" \
     && : :: dockerize: download and unpack artefacts \
     && for u in $urls;do do_curl -sLO $u && tar -xzf $(basename $u);done \
     && mv -vf dockerize /usr/bin/dockerize \

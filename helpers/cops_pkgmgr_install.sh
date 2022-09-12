@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # BEGIN: corpusops common glue
 readlinkf() {
-    if ( uname | egrep -iq "darwin|bsd" );then
+    if ( uname | grep -E -iq "darwin|bsd" );then
         if ( which greadlink 2>&1 >/dev/null );then
             greadlink -f "$@"
         elif ( which perl 2>&1 >/dev/null );then
@@ -247,12 +247,12 @@ version_lte() { [  "$1" = "$(printf "$1\n$2" | sort -V | head -n1)" ]; }
 version_lt() { [ "$1" = "$2" ] && return 1 || version_lte $1 $2; }
 version_gte() { [  "$2" = "$(printf "$1\n$2" | sort -V | head -n1)" ]; }
 version_gt() { [ "$1" = "$2" ] && return 1 || version_gte $1 $2; }
-is_archlinux_like() { echo $DISTRIB_ID | egrep -iq "archlinux|arch"; }
-is_debian_like() { echo $DISTRIB_ID | egrep -iq "debian|ubuntu|mint"; }
-is_suse_like() { echo $DISTRIB_ID | egrep -iq "suse"; }
-is_alpine_like() { echo $DISTRIB_ID | egrep -iq "alpine" || test -e /etc/alpine-release; }
+is_archlinux_like() { echo $DISTRIB_ID | grep -E -iq "archlinux|arch"; }
+is_debian_like() { echo $DISTRIB_ID | grep -E -iq "debian|ubuntu|mint"; }
+is_suse_like() { echo $DISTRIB_ID | grep -E -iq "suse"; }
+is_alpine_like() { echo $DISTRIB_ID | grep -E -iq "alpine" || test -e /etc/alpine-release; }
 is_redhat_like() { echo $DISTRIB_ID \
-        | egrep -iq "((^ol$)|rhel|redhat|red-hat|centos|fedora)"; }
+        | grep -E -iq "((^ol$)|rhel|redhat|red-hat|centos|fedora)"; }
 set_lang() { locale=${1:-C};export LANG=${locale};export LC_ALL=${locale}; }
 detect_os() {
     # this function should be copiable in other scripts, dont use adjacent functions
@@ -376,8 +376,8 @@ may_sudo() {
 get_ancestor_from_dockerfile() {
     local dockerfile=${1}
     local ancestor=
-    if [ -e "${dockerfile}" ] && egrep -q ^FROM "${dockerfile}"; then
-        ancestor=$(egrep ^FROM "${dockerfile}"\
+    if [ -e "${dockerfile}" ] && grep -E -q ^FROM "${dockerfile}"; then
+        ancestor=$(grep -E ^FROM "${dockerfile}"\
             | head -n1 | awk '{print $2}' | xargs -n1| sort -u )
     fi
     echo ${ancestor}
@@ -434,7 +434,7 @@ upgrade_wd_to_br() {
         if [ "x${test_branch}" != "x${up_branch}" ];then
             warn "Upgrading $wd to branch: $up_branch"
             git fetch --all || die "git fetch in $wd failed"
-            if get_git_branchs | egrep -q "^${up_branch}$";then
+            if get_git_branchs | grep -E -q "^${up_branch}$";then
                 vv git checkout ${up_branch} &&\
                     vv git reset --hard origin/${up_branch}
             else
@@ -464,7 +464,7 @@ get_python2() {
     local py2=
     for i in python2.7 python2.6 python-2.7 python-2.6 python-2;do
         local lpy=$(get_command $i 2>/dev/null)
-        if [ "x$lpy" != "x" ] && ( ${lpy} -V 2>&1| egrep -qi 'python 2' );then
+        if [ "x$lpy" != "x" ] && ( ${lpy} -V 2>&1| grep -E -qi 'python 2' );then
             py2=${lpy}
             break
         fi
@@ -713,7 +713,7 @@ pacman_install() {
 pacman_setup() {
     ensure_command awk core/gawk
     ensure_command sort core/coreutils
-    ensure_command egrep core/grep
+    ensure_command grep -E core/grep
     ensure_command which core/which
 }
 
@@ -742,7 +742,7 @@ is_dnf_installed() {
 dnf_update() {
     vvv dnf check-update $(i_y)
     ret=$?
-    if echo ${ret} | egrep -q '^(0|100)$'; then
+    if echo ${ret} | grep -E -q '^(0|100)$'; then
         return 0
     fi
     return 1
@@ -793,7 +793,7 @@ is_yum_installed() {
 yum_update() {
     vvv yum check-update $(i_y)
     ret=$?
-    if echo ${ret} | egrep -q '^(0|100)$'; then
+    if echo ${ret} | grep -E -q '^(0|100)$'; then
         return 0
     fi
     return 1
@@ -845,7 +845,7 @@ rh_setup() {
     ensure_command xargs findutils
     ensure_command awk gawk
     ensure_command sort coreutils
-    ensure_command egrep grep
+    ensure_command grep -E grep
     ensure_command which which
 }
 
@@ -864,7 +864,7 @@ is_aptget_available() {
 }
 
 is_aptget_installed() {
-    if ! dpkg-query -s ${@} 2>/dev/null|egrep "^Status:"|grep -q installed; then
+    if ! dpkg-query -s ${@} 2>/dev/null|grep -E "^Status:"|grep -q installed; then
         return 1
     fi
 }
@@ -958,7 +958,7 @@ is_zypper_available() {
 }
 
 is_zypper_installed() {
-    if ( $(zyppern) info $@|egrep -iq "installed:?\s.*no" ); then
+    if ( $(zyppern) info $@|grep -E -iq "installed:?\s.*no" ); then
         return 1
     fi
     return 0
